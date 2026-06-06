@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>チャット</title>
+  <style>
+      body { font-family: sans-serif; max-width: 480px; margin: 40px auto;
+          background: #f0f4f8; padding: 0 16px; }
+      h1   { background: #0d7377; color: white; padding: 12px 20px;
+          border-radius: 6px; font-size: 20px; }
+      form { display: flex; gap: 8px; margin-bottom: 12px; }
+      input  { flex: 1; padding: 8px 10px; border: 1px solid #bbb;
+              border-radius: 4px; font-size: 15px; }
+      button { padding: 8px 14px; background: #0d7377; color: white;
+              border: none; border-radius: 4px; cursor: pointer; }
+      #messages    { list-style: none; padding: 0; }
+      #messages li { background: white; padding: 8px 12px; margin-bottom: 8px;
+                  border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+  <h1>チャット</h1>
+  <form id="form">
+    <input type="text" id="username" placeholder="名前" required>
+    <input type="text" id="text" placeholder="メッセージ" required>
+    <button type="submit">送信</button>
+  </form>
+  <ul id="messages"></ul>
+
+  <script>
+    async function getMessages() {
+      const response = await fetch('/api/messages');
+      const messages = await response.json();
+      const ul = document.getElementById('messages');
+      ul.innerHTML = '';
+      messages.forEach(msg => {
+        const li = document.createElement('li');
+        li.textContent = `${msg.username}: ${msg.text}`;
+        ul.appendChild(li);
+      });
+    }
+
+    async function sendMessage(username, text) {
+      await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, text })
+      });
+      getMessages();
+    }
+
+    document.getElementById('form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const text = document.getElementById('text').value;
+      sendMessage(username, text);
+      e.target.reset();
+    });
+
+    setInterval(getMessages, 3000);  // 3秒ごとに自動更新
+    getMessages();
+  </script>
+</body>
+</html>
